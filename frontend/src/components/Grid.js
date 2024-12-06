@@ -12,12 +12,11 @@ const Grid = () => {
   );
   const [playerCount, setPlayerCount] = useState(0);
   const [canUpdate, setCanUpdate] = useState(true);
+  const [hasUpdated, setHasUpdated] = useState(false); // Track if player has already updated
   const [history, setHistory] = useState([]);
   const [showingHistory, setShowingHistory] = useState(false);
 
   useEffect(() => {
-    console.log("Setting up socket listeners");
-
     socket.on("grid-update", (updatedGrid) => setGrid(updatedGrid));
     socket.on("player-count", (count) => setPlayerCount(count));
     socket.on("grid-history", (updateHistory) => setHistory(updateHistory));
@@ -26,7 +25,6 @@ const Grid = () => {
     });
 
     return () => {
-      console.log("Cleaning up socket listeners");
       socket.off("grid-update");
       socket.off("player-count");
       socket.off("grid-history");
@@ -45,10 +43,13 @@ const Grid = () => {
   }, []);
 
   const handleBlockClick = (row, col) => {
-    if (!canUpdate || grid[row][col]) return;
+    if (!canUpdate || hasUpdated || grid[row][col]) return;
 
     const unicodeChar = prompt("Enter a Unicode character:");
-    if (!unicodeChar) return;
+    if (!unicodeChar || unicodeChar.length !== 1) {
+      alert("Please enter a valid single Unicode character.");
+      return;
+    }
 
     // Optimistically update grid locally
     setGrid((prevGrid) => {
@@ -63,12 +64,19 @@ const Grid = () => {
     // Emit update to the server
     socket.emit("update-grid", { row, col, char: unicodeChar });
 
-    setCanUpdate(false);
-    setTimeout(() => setCanUpdate(true), 60000); // Optional cooldown
+    setHasUpdated(true); // Prevent further updates
   };
 
   const toggleHistory = () => {
     setShowingHistory(!showingHistory);
+  };
+
+  const revertToState = (historyIndex) => {
+    const revertedGrid = history.slice(0, historyIndex + 1).reduce((grid, update) => {
+      grid[update.row][update.col] = update.char;
+      return grid;
+    }, Array(10).fill(null).map(() => Array(10).fill("")));
+    setGrid(revertedGrid);
   };
 
   const formatTimestamp = (timestamp) => {
@@ -97,7 +105,11 @@ const Grid = () => {
           <h4>Update History:</h4>
           <ul>
             {history.map((update, index) => (
-              <li key={index} className="history-item">
+              <li
+                key={index}
+                className="history-item"
+                onClick={() => revertToState(index)}
+              >
                 <span>
                   <strong>Row:</strong> {update.row}, <strong>Col:</strong> {update.col}
                 </span>
