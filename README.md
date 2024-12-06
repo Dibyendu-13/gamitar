@@ -42,7 +42,7 @@ cd gamitar
    ```
 3. Start the backend server:
    ```bash
-   node server.js
+   npm start
    ```
    The server will run on [http://localhost:4000](http://localhost:4000).
 
