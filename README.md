@@ -29,8 +29,8 @@ Ensure the following are installed on your system:
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/Dibyendu-13/multiplayer-grid-app.git
-cd multiplayer-grid-app
+git clone https://github.com/Dibyendu-13/gamitar.git
+cd gamitar
 ```
 
 ### Backend Setup
@@ -70,7 +70,7 @@ cd multiplayer-grid-app
 ## Project Structure
 
 ```
-multiplayer-grid-app/
+gamitar/
 │
 ├── backend/
 │   └── server.js       # Node.js server with Socket.IO
